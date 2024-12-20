@@ -212,14 +212,7 @@ func GetDogsJson(c *fiber.Ctx) error {
 
 	db.Find(&dogs) //10ตัว
 
-	type DogsRes struct {
-		Name  string `json:"name"`
-		DogID int    `json:"dog_id"`
-		Type  string `json:"type"`
-	
-	}
-
-	var dataResults []DogsRes
+	var dataResults []m.DogsRes
 	var sum_red, sum_green, sum_pink, sum_no_color int
 	for _, v := range dogs { //1 inet 112 //2 inet1 113
 		typeStr := ""
@@ -238,7 +231,7 @@ func GetDogsJson(c *fiber.Ctx) error {
 			sum_no_color++
 		}
 
-		d := DogsRes{
+		d := m.DogsRes{
 			Name:  v.Name,  //inet
 			DogID: v.DogID, //112
 			Type:  typeStr, //no color
@@ -249,17 +242,9 @@ func GetDogsJson(c *fiber.Ctx) error {
 		// sumAmount += v.Amount
 	}
 
-	type ResultData struct {
-		Data  []DogsRes `json:"data"`
-		Name  string    `json:"name"`
-		Count int       `json:"count"`
-		SumRed int `json:"sum_red"`
-		SumGreen int `json:"sum_green"`
-		SumPink int `json:"sum_pink"`
-		SumNoColor int `json:"sum_no_color"`
-	}
 	
-	r := ResultData{
+	
+	r := m.ResultData{
 		Count: len(dogs), //หาผลรวม,
 		Data:  dataResults,
 		SumRed:     sum_red,
@@ -322,3 +307,129 @@ func RemoveCompany(c *fiber.Ctx) error {
 	return c.SendStatus(200)
 }
 
+// CRUD profile
+// Get profile
+func GetProfile(c *fiber.Ctx) error {
+	db := database.DBConn
+	var profile []m.Profile
+
+	db.Find(&profile) //delelete = null
+	return c.Status(200).JSON(profile)
+}
+// add profile
+func AddProfile(c *fiber.Ctx) error {
+	db := database.DBConn
+	var profile m.Profile
+
+	if err := c.BodyParser(&profile); err != nil {
+		return c.Status(503).SendString(err.Error())
+	}
+
+	db.Create(&profile)
+	return c.Status(201).JSON(profile)
+}
+// update profile
+func UpdateProfile(c *fiber.Ctx) error {
+	db := database.DBConn
+	var profile m.Profile
+	id := c.Params("id")
+
+	if err := c.BodyParser(&profile); err != nil {
+		return c.Status(503).SendString(err.Error())
+	}
+
+	db.Where("id = ?", id).Updates(&profile)
+	return c.Status(200).JSON(profile)
+}
+// delete profile
+func RemoveProfile(c *fiber.Ctx) error {
+	db := database.DBConn
+	id := c.Params("id")
+	var profile m.Profile
+
+	result := db.Delete(&profile, id)
+
+	if result.RowsAffected == 0 {
+		return c.SendStatus(404)
+	}
+
+	return c.SendStatus(200)
+}
+
+// API GET ข้อมูลผู้ใช้และโชว์จำนวนของแต่ละประเภทกลุ่มอายุ 
+func GetProfileGroup(c *fiber.Ctx) error {
+	db := database.DBConn
+	var profile []m.Profile
+
+	db.Find(&profile) //delelete = null
+	var dataResults []m.ProfileRes
+	var GenZ , GenY , GenX , Baby_Boomer , GI_Generation int
+
+	for _, v := range profile { 
+		typeStr := ""
+	
+		
+		if v.Age <= 24 {
+			typeStr = "GenZ"
+			GenZ++
+		} else if v.Age >= 24 && v.Age <= 41 {
+			typeStr = "GenY"
+			GenY++
+		} else if v.Age >= 42 && v.Age <= 56 {
+			typeStr = "GenX"
+			GenX++
+		} else if v.Age >= 57 && v.Age <= 75 {
+			typeStr = "Baby_Boomer"
+			Baby_Boomer++
+		} else if v.Age > 75 {
+			typeStr = "GI_Generation"
+			GI_Generation++
+		} else {
+			typeStr = "no age"
+		}
+
+		d := m.ProfileRes{
+			Employees:  v.Employees,
+			Name:  v.Name,
+			LastNames:  v.LastNames,
+			Age:  v.Age,
+			Type:  typeStr,
+		}
+		dataResults = append(dataResults, d)
+}
+
+	r := m.ResultProfile{
+		Count: len(profile), //หาผลรวม,
+		Data:  dataResults,
+		GenZ:     GenZ,
+		GenY:   GenY,
+		GenX:    GenX,
+		BabyBoomer: Baby_Boomer,
+		GiGeneration: GI_Generation,
+	}
+	return c.Status(200).JSON(r)
+}
+
+// สร้าง API search ข้อมูลโปรไฟล์ผู้ใช้ โดยที่สามารถserchได้3ตัวคือ employee_id, name ,lastname ภายในคีย์searchตัวเดียว  xxx/search
+// func GetProfileSearch(c *fiber.Ctx) error {
+// 	db := database.DBConn
+
+// 	search := strings.TrimSpace(c.Query("search"))
+// 	var profile []m.Profile
+	
+// 	result := db.Where("employees = ? OR name = ? OR last_names = ?", search, search, search).Find(&profile)
+
+// 	return c.Status(200).JSON(result)
+// }
+
+func SearchProfile(c *fiber.Ctx) error {
+    db := database.DBConn
+    // search := c.Query("search")
+	search := strings.TrimSpace(c.Query("search"))
+
+    var profiles []m.Profile
+	db.Where("employees LIKE ? OR name LIKE ? OR last_names LIKE ?", "%"+search+"%", "%"+search+"%", "%"+search+"%").Find(&profiles)
+
+
+    return c.Status(200).JSON(profiles)
+}

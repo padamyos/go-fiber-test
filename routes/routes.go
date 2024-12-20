@@ -11,30 +11,28 @@ func Routes(app *fiber.App) {
 
 	v1 := app.Group("/api/v1")
 	v3 := app.Group("/api/v3/ta")
+	company := v1.Group("/company")
+	profile := v1.Group("/profile")
 
+
+	profile.Get("", c.GetProfile)
 	// Provide a minimal config
 	v1.Use(basicauth.New(basicauth.Config{
 		Users: map[string]string{
-			"gofiber": "21022566",
+			// "gofiber": "21022566",
+			"testgo": "23012023",
 		},
 	}))
 
 	v1.Get("/", c.Hellotest)
-
 	v1.Post("/", c.BodyParser)
-
 	v1.Get("/user/:name", c.Params)
-
 	v1.Post("/inet", c.Search)
-
 	v1.Post("/valid", c.Validate)
-
 	// ข้อที่ 5.1
 	v1.Get("/fact/:num", c.Factorial)
-
 	// ข้อที่ 5.2
 	v3.Post("/taxId", c.TaxId)
-
 	// ข้อที่ 6
 	v1.Post("/register", c.Register)
 
@@ -53,9 +51,17 @@ func Routes(app *fiber.App) {
 	dog.Get("/where", c.GetDogsWhere)
 
 	//CRUD company
-	company := v1.Group("/company")
 	company.Get("", c.GetCompany)
 	company.Post("/", c.AddCompany)
 	company.Put("/:id", c.UpdateCompany)
 	company.Delete("/:id", c.RemoveCompany)
+
+	//CRUD profile
+	// profile.Get("", c.GetProfile)
+	profile.Post("/", c.AddProfile)
+	profile.Put("/:id", c.UpdateProfile)
+	profile.Delete("/:id", c.RemoveProfile)
+	profile.Get("/json", c.GetProfileGroup)
+	// profile.Get("/filter", c.GetProfileSearch)
+	profile.Get("/search", c.SearchProfile)
 }
