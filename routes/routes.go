@@ -14,13 +14,12 @@ func Routes(app *fiber.App) {
 	company := v1.Group("/company")
 	profile := v1.Group("/profile")
 
-
 	profile.Get("", c.GetProfile)
 	// Provide a minimal config
 	v1.Use(basicauth.New(basicauth.Config{
 		Users: map[string]string{
-			// "gofiber": "21022566",
-			"testgo": "23012023",
+			"gofiber": "21022566",
+			// "testgo": "23012023",
 		},
 	}))
 
@@ -62,6 +61,5 @@ func Routes(app *fiber.App) {
 	profile.Put("/:id", c.UpdateProfile)
 	profile.Delete("/:id", c.RemoveProfile)
 	profile.Get("/json", c.GetProfileGroup)
-	// profile.Get("/filter", c.GetProfileSearch)
-	profile.Get("/search", c.SearchProfile)
+	profile.Get("/profiles", c.SearchProfile)
 }

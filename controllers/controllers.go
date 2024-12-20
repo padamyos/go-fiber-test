@@ -201,7 +201,7 @@ func GetDogsWhere(c *fiber.Ctx) error {
 	var dogs []m.Dogs
 
 	// ดึงข้อมูลที่ dog_id > 50 แต่น้อยกว่า 100
-	db.Where("dog_id > ? AND dog_id < ?", 50, 100).Find(&dogs)
+	db.Where("dog_id > ? ",100).Find(&dogs)
 	return c.Status(200).JSON(dogs)
 }
 
@@ -213,22 +213,22 @@ func GetDogsJson(c *fiber.Ctx) error {
 	db.Find(&dogs) //10ตัว
 
 	var dataResults []m.DogsRes
-	var sum_red, sum_green, sum_pink, sum_no_color int
-	for _, v := range dogs { //1 inet 112 //2 inet1 113
+	var sumRed, sumGreen, sumPink, sumNoColor int
+	for _, v := range dogs { 
 		typeStr := ""
 		
 		if v.DogID >= 10 && v.DogID <= 50 {
 			typeStr = "red"
-			sum_red++
+			sumRed++
 		} else if v.DogID >= 100 && v.DogID <= 150 {
 			typeStr = "green"
-			sum_green++
+			sumGreen++
 		} else if v.DogID >= 200 && v.DogID <= 250 {
 			typeStr = "pink"
-			sum_pink ++
+			sumPink ++
 		} else {
 			typeStr = "no color"
-			sum_no_color++
+			sumNoColor++
 		}
 
 		d := m.DogsRes{
@@ -241,16 +241,14 @@ func GetDogsJson(c *fiber.Ctx) error {
 		
 		// sumAmount += v.Amount
 	}
-
-	
-	
 	r := m.ResultData{
 		Count: len(dogs), //หาผลรวม,
+		Name: "Dogs",
 		Data:  dataResults,
-		SumRed:     sum_red,
-        SumGreen:   sum_green,
-        SumPink:    sum_pink,
-        SumNoColor: sum_no_color,
+		SumRed:     sumRed,
+        SumGreen:   sumGreen,
+        SumPink:    sumPink,
+        SumNoColor: sumNoColor,
 		
 	}
 	return c.Status(200).JSON(r)
